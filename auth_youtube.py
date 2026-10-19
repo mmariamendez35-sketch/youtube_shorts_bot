@@ -1,100 +1,84 @@
-# auth_youtube.py
-"""
-Script de autenticación OAuth de YouTube (ejecutar UNA SOLA VEZ).
-
-Instrucciones:
-1. Ve a https://console.cloud.google.com/
-2. Crea un proyecto nuevo (o usa uno existente).
-3. Habilita la "YouTube Data API v3" en APIs & Services > Library.
-4. Ve a APIs & Services > Credentials > Create Credentials > OAuth client ID.
-5. Tipo de aplicación: "Desktop app".
-6. Descarga el archivo JSON y guárdalo como "client_secret.json" en esta carpeta.
-7. Ejecuta este script: python auth_youtube.py
-8. Se abrirá tu navegador para autorizar la app con tu cuenta de YouTube.
-9. El script generará "youtube_token.json" con el refresh_token.
-10. Copia el CONTENIDO de ambos archivos como GitHub Secrets:
-    - CLIENT_SECRET_JSON  = contenido de client_secret.json
-    - YOUTUBE_TOKEN_JSON  = contenido de youtube_token.json
-"""
 import json
+import sys
 import os
 from pathlib import Path
-
-from google_auth_oauthlib.flow import InstalledAppFlow
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+import requests
 
 SCOPES = [
     "https://www.googleapis.com/auth/youtube.upload",
     "https://www.googleapis.com/auth/youtube.readonly",
 ]
 
-CLIENT_SECRET_FILE = "client_secret.json"
-TOKEN_OUTPUT_FILE = "youtube_token.json"
+auth_code = None
 
+class OAuthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        global auth_code
+        parsed = urlparse(self.path)
+        qs = parse_qs(parsed.query)
+        if "code" in qs:
+            auth_code = qs["code"][0]
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(b"<h1>Autenticacion completada con exito! Ya puedes cerrar esta ventana.</h1>")
+        else:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b"Error: no se recibio codigo de autorizacion.")
 
 def main():
-    if not Path(CLIENT_SECRET_FILE).exists():
-        print("=" * 60)
-        print("ERROR: No se encontró 'client_secret.json'")
-        print()
-        print("Sigue estos pasos:")
-        print("1. Ve a https://console.cloud.google.com/")
-        print("2. Crea un proyecto (o selecciona uno existente).")
-        print("3. Habilita 'YouTube Data API v3':")
-        print("   APIs & Services > Library > busca 'YouTube Data API v3' > Enable")
-        print("4. Crea credenciales OAuth:")
-        print("   APIs & Services > Credentials > Create Credentials > OAuth client ID")
-        print("   Tipo: 'Desktop app'")
-        print("5. Descarga el JSON y guárdalo como 'client_secret.json' aquí.")
-        print("6. Ejecuta este script de nuevo.")
-        print("=" * 60)
-        return
+    global auth_code
+    with open("client_secret.json", "r", encoding="utf-8") as f:
+        data = json.load(f)["installed"]
+    
+    client_id = data["client_id"]
+    client_secret = data["client_secret"]
+    token_uri = data.get("token_uri", "https://oauth2.googleapis.com/token")
+    redirect_uri = "http://localhost:8080/"
 
-    print("Iniciando flujo de autorización de YouTube...")
-    print("Se abrirá tu navegador. Inicia sesión con la cuenta de tu canal.")
-    print()
+    auth_url = (
+        f"https://accounts.google.com/o/oauth2/auth?"
+        f"response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&"
+        f"scope={'+'.join(SCOPES)}&prompt=consent&access_type=offline"
+    )
 
-    flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
+    print("AUTH_URL:" + auth_url, flush=True)
+    print("READY_HTTP_SERVER", flush=True)
 
-    # Intenta abrir el navegador automáticamente
-    try:
-        creds = flow.run_local_server(port=8080, prompt="consent")
-    except Exception:
-        # Si no hay interfaz gráfica, usa el modo consola
-        creds = flow.run_console()
+    httpd = HTTPServer(("127.0.0.1", 8080), OAuthHandler)
+    while auth_code is None:
+        httpd.handle_request()
+
+    print("CODE_RECEIVED, intercambiando por tokens...", flush=True)
+    # Intercambiar code por refresh_token directamente via POST
+    token_resp = requests.post(
+        token_uri,
+        data={
+            "code": auth_code,
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "redirect_uri": redirect_uri,
+            "grant_type": "authorization_code",
+        },
+    )
+    tokens = token_resp.json()
+    if "error" in tokens:
+        print(f"Error canjeando token: {tokens}", flush=True)
+        sys.exit(1)
 
     token_data = {
-        "token": creds.token,
-        "refresh_token": creds.refresh_token,
-        "token_uri": creds.token_uri,
-        "client_id": creds.client_id,
-        "client_secret": creds.client_secret,
-        "scopes": list(creds.scopes) if creds.scopes else SCOPES,
+        "token": tokens.get("access_token"),
+        "refresh_token": tokens.get("refresh_token"),
+        "token_uri": token_uri,
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "scopes": SCOPES,
     }
-
-    Path(TOKEN_OUTPUT_FILE).write_text(json.dumps(token_data, indent=2), encoding="utf-8")
-
-    print()
-    print("=" * 60)
-    print("¡ÉXITO! Token guardado en:", TOKEN_OUTPUT_FILE)
-    print("=" * 60)
-    print()
-    print("AHORA copia el CONTENIDO de estos archivos como GitHub Secrets:")
-    print()
-    print(f"  Secret: CLIENT_SECRET_JSON")
-    print(f"  Valor:  (contenido de {CLIENT_SECRET_FILE})")
-    print()
-    print(f"  Secret: YOUTUBE_TOKEN_JSON")
-    print(f"  Valor:  (contenido de {TOKEN_OUTPUT_FILE})")
-    print()
-    print("Enlace directo para crear secrets:")
-    print("  https://github.com/mmariamendez35-sketch/youtube_shorts_bot/settings/secrets/actions/new")
-    print()
-    print("=" * 60)
-    print()
-    print("Contenido de YOUTUBE_TOKEN_JSON (copia esto):")
-    print()
-    print(json.dumps(token_data, indent=2))
-
+    Path("youtube_token.json").write_text(json.dumps(token_data, indent=2), encoding="utf-8")
+    print("TOKEN_SAVED_SUCCESSFULLY", flush=True)
 
 if __name__ == "__main__":
     main()
