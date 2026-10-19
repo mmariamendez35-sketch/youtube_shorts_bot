@@ -1,78 +1,80 @@
-# YouTube Shorts Autonomous Bot
+# 🙏 Oraciones que transforman — Bot Autónomo de YouTube
 
-## Overview
-This repository contains a **zero‑cost, fully autonomous pipeline** that generates, assembles, and publishes YouTube Shorts (4 times a day) about biblical stories with high retention. The architecture mirrors the robust "Daily Oracle" bot and uses only free services:
-- **OpenRouter free models** (cascading fallback)
-- **gTTS** (primary TTS) with **espeak‑ng** fallback
-- **FFmpeg** for vertical video creation
-- **GitHub Actions** as the server‑less scheduler
-- **YouTube Data API v3** with persisted OAuth token
-- Optional **Tkinter desktop monitor** and **PWA** (to be added later)
+Bot 100% autónomo que genera y publica **videos cortos (Shorts)** y **videos largos** con oraciones poderosas diarias. Cada video es **visualmente único** para evitar detección de spam.
 
-## Folder Structure
+## ¿Qué hace?
+
+### 📱 Shorts (4 por día)
+- Oraciones cortas de ~50 palabras con máximo impacto
+- Hook emocional en los primeros 2 segundos
+- CTA variado (AMÉN, Suscríbete, Comparte, FE...)
+- Duración: 30-58 segundos
+
+### 🎬 Videos Largos (1 por día)
+- Oraciones profundas divididas en 6-12 capítulos
+- Cada capítulo con título animado y fondo único
+- Timestamps automáticos en la descripción
+- Duración: 8-15 minutos
+
+## 🛡️ Sistema Anti-Spam
+- **Rotación de temas**: 25 temas shorts + 15 temas largos, sin repetir
+- **Fingerprinting**: cada guion se hashea para evitar duplicados
+- **Estilos visuales rotativos**: 10 paletas de colores diferentes
+- **CTAs variados**: 8 frases diferentes que rotan
+- **Historial**: registra cada publicación para no repetir
+
+## 🎨 Efectos Visuales
+- **Ken Burns**: zoom/pan animado con keyframes únicos
+- **Gradientes animados**: fondos con colores que pulsan y cambian
+- **Subtítulos estilizados**: 5 estilos diferentes que rotan
+- **Títulos de capítulo**: animados con fade in/out (videos largos)
+- **Música de fondo**: mezcla suave opcional
+
+## ⏰ Horarios de publicación
+| Hora (Colombia) | Tipo | Descripción |
+|-----------------|------|-------------|
+| 🌅 8:00 AM | Short | Oración de la mañana |
+| 🌤️ 10:00 AM | Largo | Oración profunda del día |
+| ☀️ 12:00 PM | Short | Oración del mediodía |
+| 🌆 5:00 PM | Short | Oración de la tarde |
+| 🌙 9:00 PM | Short | Oración de la noche |
+
+## 📁 Estructura del proyecto
 ```
-youtube_shorts_bot/
-├─ .github/
-│  └─ workflows/
-│     └─ publish_shorts.yml      # Scheduler (4×/day)
-├─ docs/
-│  └─ index.html                # Placeholder for future PWA
-├─ assets/
-│  ├─ background.mp4            # Loopable background (add your own)
-│  ├─ overlay.png               # Illustration/card (add your own)
-│  ├─ music.mp3                 # Ambient music (optional)
-│  └─ thumbnail.jpg             # Vertical thumbnail (optional)
-├─ scripts/
-│  ├─ generate_script.py        # OpenRouter cascade
-│  ├─ generate_audio.py         # gTTS / espeak‑ng + SRT
-│  ├─ assemble_video.py         # FFmpeg assembly
-│  ├─ publish_youtube.py        # YouTube uploader
-│  ├─ lock.py                   # Cool‑down lock (45 min)
-│  └─ main.py                   # Orchestrator called by the Action
-├─ config.py                     # Channel & secret configuration
-├─ requirements.txt              # Python dependencies
-└─ README.md                     # This file
+├── .github/workflows/
+│   └── publish_shorts.yml     # Workflow (cron + manual dispatch)
+├── assets/                    # Media opcional (se autogenera si falta)
+│   ├── music.mp3              # Música de fondo suave
+│   └── thumbnail.jpg          # Miniatura personalizada
+├── scripts/
+│   ├── main.py                # Orquestador (short/long)
+│   ├── generate_script.py     # Generador IA de oraciones
+│   ├── generate_audio.py      # Texto a voz + subtítulos SRT
+│   ├── assemble_video.py      # Video con keyframes y efectos
+│   ├── publish_youtube.py     # Publicación en YouTube
+│   ├── anti_spam.py           # Control anti-repetición
+│   ├── lock.py                # Cooldown entre publicaciones
+│   └── __init__.py
+├── auth_youtube.py            # Autorización OAuth (ejecutar 1 vez)
+├── config.py                  # Configuración del canal
+├── requirements.txt           # Dependencias Python
+└── README.md
 ```
 
-## Quick Setup Guide
-1. **Create the repo**
-   ```bash
-   mkdir youtube_shorts_bot && cd youtube_shorts_bot
-   # copy the generated files from the artifact directory to here
-   # (or simply `git clone` a fresh repo and paste the contents)
-   git init && git add . && git commit -m "Initial commit"
-   git remote add origin <YOUR_GITHUB_URL>
-   git push -u origin master
-   ```
-2. **Add the required GitHub Secrets** (Settings → Secrets → Actions)
-   - `OPENROUTER_API_KEY` – your free OpenRouter key.
-   - `YOUTUBE_TOKEN_JSON` – the OAuth token JSON (obtain via the Google OAuth flow; the token must contain a `refresh_token`).
-   - `CLIENT_SECRET_JSON` – the client secret you received from Google Cloud Console.
-   - *(Optional)* `YOUTUBE_CHANNEL_ID` – the numeric channel ID if it is not present in the token JSON.
-3. **Provide assets**
-   - Place a **loopable vertical video** (≈5‑10 s) at `assets/background.mp4`.
-   - Add an **illustration** for the overlay at `assets/overlay.png`.
-   - (Optional) background music `assets/music.mp3` and thumbnail `assets/thumbnail.jpg`.
-4. **Enable the workflow**
-   - Go to the *Actions* tab, enable the "Publish YouTube Shorts" workflow.
-   - You can trigger it manually via *Run workflow* → optional *topic* input.
-5. **Test a single run**
-   ```bash
-   python scripts/main.py "El valor de David contra Goliat"
-   ```
-   Check the logs in the Action run; a video should appear on your channel.
+## 🔐 Secretos de GitHub necesarios
+| Secreto | Descripción |
+|---------|------------|
+| `OPENROUTER_API_KEY` | Clave de API de OpenRouter (genera guiones con IA) |
+| `CLIENT_SECRET_JSON` | Contenido del client_secret.json (OAuth de GCP) |
+| `YOUTUBE_TOKEN_JSON` | Token OAuth generado por auth_youtube.py |
 
-## Customising the Bot
-- **Channel details** – edit `config.py` (name, niche, CTA, tags).
-- **Publish schedule** – modify `PUBLISH_TIMES` in `config.py` and the cron expression in `.github/workflows/publish_shorts.yml`.
-- **Emergency script pool** – edit `EMERGENCY_SCRIPTS` in `scripts/generate_script.py`.
-- **Audio language / speed** – adjust `TTS_LANGUAGE` and `TTS_SLOW` in `config.py`.
-- **Background / overlay** – replace the files in `assets/`.
-
-## Next Steps (Optional)
-- Implement the **Tkinter desktop monitor** (scripts/ui_app.py) for real‑time status and manual overrides.
-- Flesh‑out the **PWA** in `docs/` (HTML + simple auth) so you can trigger uploads from mobile.
-- Add a **long‑form video** generation pipeline (reuse the same scripts, just change the schedule and script length).
+## 🚀 Configuración
+1. Habilita YouTube Data API v3 en Google Cloud Console.
+2. Crea credenciales OAuth (Aplicación de escritorio).
+3. Ejecuta `python auth_youtube.py` para autorizar tu canal.
+4. Configura los 3 secretos en Settings → Secrets → Actions.
+5. Activa el workflow en la pestaña Actions.
+6. ¡El bot publicará automáticamente!
 
 ---
-Feel free to ask if you need help setting up the OAuth flow, generating the assets, or extending the bot with the desktop/PWA UI.
+*Oraciones que transforman — Cada día una oración que toca el corazón* 🙏

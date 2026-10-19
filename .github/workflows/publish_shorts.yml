@@ -1,20 +1,29 @@
-name: Publish YouTube Shorts
+name: Publish YouTube Content — Oraciones que transforman
 
 on:
   schedule:
-    - cron: '0 13,17,21,0 * * *'   # UTC times for 8:00,12:00,17:00,21:00 Colombia (UTC-5) -> add 5h => 13,17,21,0 UTC
-    # Adjust as needed for daylight savings (Colombia does not observe DST)
+    # Shorts: 4 per day (8am, 12pm, 5pm, 9pm Colombia UTC-5 → +5h = UTC)
+    - cron: '0 13 * * *'    # 8:00 AM COL
+    - cron: '0 17 * * *'    # 12:00 PM COL
+    - cron: '0 22 * * *'    # 5:00 PM COL
+    - cron: '0 2 * * *'     # 9:00 PM COL
+    # Long video: 1 per day (10am Colombia)
+    - cron: '0 15 * * *'    # 10:00 AM COL
   workflow_dispatch:
     inputs:
+      format:
+        description: 'Video format: "short" or "long"'
+        required: false
+        default: 'short'
       topic:
-        description: 'Optional custom topic for the short (overrides auto‑selected)'
+        description: 'Optional custom topic (overrides auto‑selected)'
         required: false
         default: ''
 
 jobs:
-  publish_shorts:
+  publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,12 +33,12 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install ffmpeg
+      - name: Install system dependencies
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y ffmpeg espeak-ng
+          sudo apt-get install -y ffmpeg espeak-ng fonts-noto
 
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
@@ -46,8 +55,32 @@ jobs:
         run: |
           echo "$CLIENT_SECRET_JSON" > client_secret.json
 
+      - name: Determine video format
+        id: format
+        run: |
+          CRON="${{ github.event.schedule }}"
+          INPUT_FMT="${{ github.event.inputs.format }}"
+          if [ -n "$INPUT_FMT" ]; then
+            echo "fmt=$INPUT_FMT" >> $GITHUB_OUTPUT
+          elif [ "$CRON" = "0 15 * * *" ]; then
+            echo "fmt=long" >> $GITHUB_OUTPUT
+          else
+            echo "fmt=short" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run orchestrator
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          python scripts/main.py "${{ github.event.inputs.topic }}"
+          python scripts/main.py "${{ steps.format.outputs.fmt }}" "${{ github.event.inputs.topic }}"
+
+      - name: Save publish history
+        if: always()
+        run: |
+          if [ -f publish_history.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add publish_history.json
+            git diff --cached --quiet || git commit -m "📝 Update publish history [skip ci]"
+            git push || true
+          fi
