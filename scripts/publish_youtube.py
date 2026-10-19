@@ -1,7 +1,9 @@
 # publish_youtube.py
 """Upload a prepared video (Short or Long) to YouTube.
 Uses the Google API client with an OAuth refresh token (stored in YOUTUBE_TOKEN_JSON secret).
-Includes automatic refresh and error resilience.
+Includes automatic refresh, error resilience and NATIVE MULTILINGUAL LOCALIZATION
+so YouTube displays title and description translated into English, Portuguese, French,
+German, Italian, Hindi, Arabic, Russian, Japanese, Korean, Indonesian and Tagalog.
 """
 import logging
 import os
@@ -22,6 +24,7 @@ from config import (
     CTA_PHRASES,
     DESCRIPTION_TEMPLATE_SHORT,
 )
+from scripts.multilingual import generate_localizations
 
 logging.basicConfig(level=logging.INFO)
 
@@ -49,9 +52,13 @@ def upload_video(
     thumbnail_path: Path = None,
     channel_id: str = None,
 ) -> str:
-    """Upload video to YouTube and return the video ID."""
+    """Upload video to YouTube with native multilingual localizations."""
     creds = _load_credentials()
     youtube = build("youtube", "v3", credentials=creds)
+
+    # Generate multilingual localizations for worldwide reach
+    localizations = generate_localizations(title, description)
+    logging.info(f"Generated {len(localizations)} multilingual localizations (EN, PT, FR, DE, IT, HI, AR, RU, JA, KO, ID, TL).")
 
     body = {
         "snippet": {
@@ -66,10 +73,11 @@ def upload_video(
             "privacyStatus": "public",
             "selfDeclaredMadeForKids": False,
         },
+        "localizations": localizations,
     }
 
     media = MediaFileUpload(str(video_path), chunksize=-1, resumable=True, mimetype="video/mp4")
-    request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+    request = youtube.videos().insert(part="snippet,status,localizations", body=body, media_body=media)
     
     response = None
     while response is None:
