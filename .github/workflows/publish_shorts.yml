@@ -2,13 +2,13 @@ name: Publish YouTube Content — Oraciones que transforman
 
 on:
   schedule:
-    # Shorts: 4 per day (8am, 12pm, 5pm, 9pm Colombia UTC-5 → +5h = UTC)
-    - cron: '0 13 * * *'    # 8:00 AM COL
-    - cron: '0 17 * * *'    # 12:00 PM COL
-    - cron: '0 22 * * *'    # 5:00 PM COL
-    - cron: '0 2 * * *'     # 9:00 PM COL
-    # Long video: 1 per day (10am Colombia)
-    - cron: '0 15 * * *'    # 10:00 AM COL
+    # ── SHORTS (Horarios de mayor consumo según estudio de audiencia espiritual) ──
+    - cron: '0 11 * * *'    # 6:00 AM COL  — Oración de la Mañana (Al despertar)
+    - cron: '0 17 * * *'    # 12:00 PM COL — Oración del Mediodía (Pausa laboral)
+    - cron: '0 23 * * *'    # 6:00 PM COL  — Oración de la Tarde / Regreso a casa
+    - cron: '0 2 * * *'     # 9:00 PM COL  — Oración de la Noche (Antes de dormir)
+    # ── VIDEO LARGO (Horario pico de retención y tiempo libre) ──
+    - cron: '0 1 * * *'     # 8:00 PM COL  — Oración Profunda de 10-15 min
   workflow_dispatch:
     inputs:
       format:
@@ -63,7 +63,7 @@ jobs:
           INPUT_FMT="${{ github.event.inputs.format }}"
           if [ -n "$INPUT_FMT" ]; then
             echo "fmt=$INPUT_FMT" >> $GITHUB_OUTPUT
-          elif [ "$CRON" = "0 15 * * *" ]; then
+          elif [ "$CRON" = "0 1 * * *" ]; then
             echo "fmt=long" >> $GITHUB_OUTPUT
           else
             echo "fmt=short" >> $GITHUB_OUTPUT
