@@ -44,6 +44,7 @@ VIDEO_WIDTH = 1080
 VIDEO_HEIGHT = 1920
 FPS = 30
 MUSIC_FILE = "assets/music.mp3"
+PRAYERS_IMG_DIR = Path("assets/prayers")
 
 # Ken Burns effect ranges (randomized per slide)
 KB_ZOOM_MIN = 1.0
