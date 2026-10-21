@@ -15,85 +15,48 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from config import (
     OPENROUTER_API_KEY, OPENROUTER_MODELS, MODEL_TIMEOUT,
-    SHORT_MAX_WORDS, LONG_MIN_SEGMENTS, LONG_MAX_SEGMENTS, LONG_WORDS_PER_SEGMENT,
+    SHORT_MIN_WORDS, SHORT_MAX_WORDS,
+    LONG_MIN_SEGMENTS, LONG_MAX_SEGMENTS, LONG_WORDS_PER_SEGMENT,
 )
 
 logging.basicConfig(level=logging.INFO)
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# ── Emergency SHORT scripts (12 unique prayers) ────────────────────────
+# ── Emergency SHORT scripts (Extensas para durar entre 42 y 54 segundos a ritmo normal) ──
 EMERGENCY_SHORTS = [
-    "Señor, hoy pongo mi vida en tus manos. "
-    "Sé que tienes un plan perfecto para mí. "
-    "Abre puertas que nadie puede cerrar. "
-    "Cubre a mi familia con tu manto de protección. "
-    "Comenta AMÉN si recibes esta bendición.",
-
-    "Padre celestial, rompe toda cadena que me ata. "
-    "Libérame de la ansiedad, del miedo y de la duda. "
-    "Llena mi corazón de tu paz que sobrepasa todo entendimiento. "
-    "Suscríbete y comenta AMÉN.",
-
-    "Dios todopoderoso, te pido sanación. "
-    "Sana mi cuerpo, sana mi mente, sana mi alma. "
-    "Donde hay dolor, trae tu consuelo. "
-    "Donde hay enfermedad, trae tu poder sanador. "
-    "Comenta SALUD si necesitas este milagro.",
-
-    "Señor, abre caminos donde no los hay. "
-    "Provee donde falta. Restaura lo que está roto. "
-    "Yo confío en que tu tiempo es perfecto. "
-    "Lo que parece imposible, tú lo haces posible. "
-    "Comenta FE si crees en su poder.",
-
-    "Espíritu Santo, lléname de tu presencia. "
-    "Guía mis pasos hoy y siempre. "
-    "Dame sabiduría para tomar las decisiones correctas. "
-    "Y fortaleza para no rendirme nunca. "
-    "Suscríbete y comenta FUERZA.",
-
-    "Padre, te pido por mi familia. "
-    "Protege a mis hijos, a mis padres, a los que amo. "
-    "Que ningún mal se acerque a nuestro hogar. "
-    "Cúbrenos con la sangre de Cristo. "
-    "Comenta PROTECCIÓN si clamas por tu familia.",
-
-    "Señor, hoy declaro que soy más que vencedor. "
-    "Ninguna arma forjada contra mí prosperará. "
-    "Tú peleas mis batallas y yo descanso en tu poder. "
-    "Todo lo puedo en Cristo que me fortalece. "
-    "Comenta AMÉN y comparte esta declaración.",
-
-    "Dios mío, en este momento de dificultad, "
-    "yo sé que tú no me has abandonado. "
-    "Tú conviertes las pruebas en testimonios. "
-    "Lo que el enemigo planeó para mal, tú lo usas para bien. "
-    "Comenta TESTIMONIO si lo crees.",
-
-    "Padre, gracias por este nuevo día. "
-    "Gracias por el aire que respiro, por la vida que me das. "
-    "Hoy elijo la gratitud sobre la queja. "
-    "La fe sobre el miedo. El amor sobre el odio. "
-    "Suscríbete y comenta GRATITUD.",
-
-    "Señor Jesús, te entrego mis preocupaciones. "
-    "Tú dijiste: no se angustien por nada. "
-    "Hoy decido confiar en tu promesa. "
-    "Tú cuidas de las aves del cielo, cuánto más de mí. "
-    "Comenta PAZ si necesitas su presencia.",
-
-    "Oración de la noche: Señor, antes de dormir, "
-    "te doy gracias por todo lo vivido hoy. "
-    "Perdona mis errores y renueva mis fuerzas para mañana. "
-    "Que tus ángeles guarden mi sueño. "
-    "Comenta AMÉN y descansa en su amor.",
-
-    "Padre, hoy oro por los que están solos. "
-    "Por los que lloran en silencio. "
-    "Por los que sienten que nadie los entiende. "
-    "Tú eres el Dios que ve, que escucha y que consuela. "
-    "Comenta CONSUELO y comparte con alguien que lo necesite.",
+    (
+        "Padre celestial y misericordioso, en este día vengo a tus pies a entregar todas mis cargas, dudas y preocupaciones. "
+        "Sé que las batallas que enfrento a veces parecen imposibles a los ojos humanos, pero en tu santa palabra encuentro mi refugio, "
+        "mi roca inconmovible y mi mayor fortaleza. Te pido que extiendas tu mano sanadora sobre mi vida y sobre mi hogar. "
+        "Bendice a cada miembro de mi hermosa familia, aleja cualquier sombra de maldad, tristeza o escasez, y renueva nuestras fuerzas hoy. "
+        "Abre caminos de luz y esperanza donde las puertas estaban cerradas, derrama abundancia, salud y trabajo digno, y llena mi corazón con tu paz infinita. "
+        "En el nombre poderoso de Jesús declaro victoria. Escribe AMÉN en los comentarios con toda tu fe y suscríbete para bendecir tu día."
+    ),
+    (
+        "Señor Jesús, hoy me detengo en silencio para darte gracias por el milagro de respirar y por tu fidelidad inquebrantable. "
+        "Tú conoces los suspiros más íntimos de mi alma y las lágrimas que he derramado en soledad. "
+        "Por eso hoy decido no temer al mañana, porque sé que tú ya estás allá preparando el terreno para mi bendición. "
+        "Rompe toda atadura de miedo, sana toda herida del pasado y levanta mi espíritu con nuevo entusiasmo y propósito. "
+        "Derrama tu favor sobre mi trabajo, cuida las entradas y salidas de mis seres amados y que en mi mesa nunca falte el pan de tu provisión. "
+        "Declaro que esta semana será de milagros y respuestas celestiales. Deja tu AMÉN con fervor y comparte este mensaje de esperanza."
+    ),
+    (
+        "Espíritu Santo de Dios, fuego consolador y guía divina, desciende con poder en este preciso momento sobre mi vida. "
+        "Limpia mi mente de pensamientos de angustia, lléname de serenidad y dame la sabiduría necesaria para tomar las mejores decisiones. "
+        "Envía a tus santos ángeles guardianes a acampar alrededor de mi casa, para que ningún peligro, envidia o enfermedad toque a los míos. "
+        "Confío plenamente en que tu tiempo es perfecto y que lo que hoy parece una prueba difícil, mañana será mi testimonio más grande de fe. "
+        "Recibo con los brazos abiertos la paz, la sanación y la prosperidad que solo provienen de ti. "
+        "Comenta AMÉN si crees firmemente en el poder de Dios y suscríbete para recibir tu oración diaria."
+    ),
+    (
+        "San Miguel Arcángel, príncipe de la milicia celestial, defiéndenos en la batalla y sé nuestro amparo contra la maldad y las asechanzas del enemigo. "
+        "Con tu espada de luz divina corta todo lazo de desánimo, toda opresión espiritual y todo plan oscuro en contra de mi familia y mi destino. "
+        "Padre eterno, sella con la preciosa sangre de Cristo mi hogar, mis proyectos y a cada uno de mis hijos. "
+        "Que tu luz resplandezca en medio de las tinieblas y que la paz de Dios que sobrepasa todo entendimiento guarde nuestros corazones hoy y siempre. "
+        "Me declaro bendecido, protegido y guiado por la mano del Altísimo en todo momento. "
+        "Escribe FUERZA y AMÉN en los comentarios para sellar esta poderosa protección en tu vida."
+    ),
 ]
 
 # ── Emergency LONG video segments ──────────────────────────────────────
@@ -129,7 +92,7 @@ EMERGENCY_LONG_SEGMENTS = [
         "title": "Oración de fortaleza",
         "text": (
             "Espíritu Santo, cuando siento que mis fuerzas se agotan, "
-            "recuérdame que tu poder se perfecciona en mi debilidad. "
+            "recuéradme que tu poder se perfecciona en mi debilidad. "
             "Dame la resistencia del águila que renueva sus fuerzas. "
             "Que pueda correr sin cansarme y caminar sin desmayar."
         ),
@@ -158,15 +121,6 @@ EMERGENCY_LONG_SEGMENTS = [
             "Gracias Señor por cada bendición, las que veo y las que no. "
             "Gracias por la vida, por la salud, por mi familia. "
             "Gracias por las pruebas que me hicieron más fuerte. "
-            "Gracias porque aun en la tormenta, tú nunca me soltaste."
-        ),
-    },
-    {
-        "title": "Oración de cierre",
-        "text": (
-            "Señor, sello esta oración con la sangre de Cristo. "
-            "Que cada palabra dicha aquí tenga poder en el mundo espiritual. "
-            "Confío en que ya estás obrando en mi vida. "
             "En el nombre de Jesús. Amén y amén."
         ),
     },
@@ -182,7 +136,7 @@ def call_model(model, prompt):
     payload = {
         "model": model,
         "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.9,
+        "temperature": 0.85,
     }
     response = requests.post(API_URL, headers=headers, json=payload, timeout=MODEL_TIMEOUT)
     response.raise_for_status()
@@ -207,21 +161,28 @@ def extract_text(response_json):
 
 
 def generate_short_script(topic: str) -> str:
-    """Generate a SHORT prayer script (max 60 words)."""
+    """Generate a SHORT prayer script designed to last between 42 and 52 seconds (100-120 words)."""
     prompt = (
-        "Eres un creador VIRAL de YouTube Shorts en español. "
-        "Canal: 'Oraciones que transforman'.\n"
-        f"Genera una oración CORTA (máximo {SHORT_MAX_WORDS} palabras) sobre:\n"
+        "Eres un creador VIRAL de YouTube Shorts en español del canal 'Oraciones que transforman'.\n"
+        f"Genera una oración PODEROSA Y COMPLETA de exactamente entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras sobre:\n"
         f"'{topic}'\n\n"
-        "REGLAS:\n"
-        "1. HOOK emocional en las primeras 2 líneas que enganche INMEDIATAMENTE.\n"
-        "2. Oración íntima, poderosa, que provoque escalofríos.\n"
-        "3. CTA final potente: 'Comenta AMÉN', 'Suscríbete', o 'Comparte'.\n"
-        "4. SOLO el texto de la oración. Sin títulos, marcas ni emojis.\n"
-        "5. Que sea ÚNICA — no uses frases genéricas ni clichés repetidos.\n"
-        "6. Incluye un elemento sorprendente o una imagen poderosa.\n"
+        "REQUISITOS CRÍTICOS:\n"
+        f"1. LONGITUD: Debe contener entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras (NUNCA menos de {SHORT_MIN_WORDS} palabras porque el audio debe durar mínimo 40 segundos).\n"
+        "2. ESTRUCTURA:\n"
+        "   - Apertura / Hook emocional que atrape en los primeros 3 segundos.\n"
+        "   - Cuerpo de la oración con súplicas profundas, fe inquebrantable y bendiciones para el hogar y la salud.\n"
+        "   - Cierre con declaración de fe y llamada a la acción: 'Escribe AMÉN en los comentarios si recibes esta bendición y suscríbete'.\n"
+        "3. FORMATO: Devuelve ÚNICAMENTE el texto narrado de la oración. Sin títulos, sin asteriscos, sin comillas, sin emojis ni notas explicativas.\n"
     )
-    return _generate_with_cascade(prompt, EMERGENCY_SHORTS)
+    script = _generate_with_cascade(prompt, EMERGENCY_SHORTS)
+    words = script.split()
+    
+    # Validar que cumpla la extension minima
+    if len(words) < SHORT_MIN_WORDS:
+        logging.warning(f"Script muy corto ({len(words)} palabras). Usando guion de respaldo enriquecido.")
+        script = random.choice(EMERGENCY_SHORTS)
+
+    return script
 
 
 def generate_long_script(topic: str) -> list:
@@ -253,8 +214,6 @@ def generate_long_script(topic: str) -> list:
             resp = call_model(model, prompt)
             text = extract_text(resp)
             if text:
-                # Try to parse as JSON
-                # Clean potential markdown fences
                 text = text.strip()
                 if text.startswith("```"):
                     text = text.split("\n", 1)[1] if "\n" in text else text[3:]
@@ -270,7 +229,6 @@ def generate_long_script(topic: str) -> list:
             continue
 
     logging.error("[LONG] Todos los modelos fallaron. Usando segmentos de emergencia.")
-    # Shuffle and pick a subset of emergency segments
     shuffled = random.sample(EMERGENCY_LONG_SEGMENTS, min(num_segments, len(EMERGENCY_LONG_SEGMENTS)))
     return shuffled
 
@@ -282,14 +240,14 @@ def _generate_with_cascade(prompt: str, emergency_list: list) -> str:
             logging.info(f"Intentando modelo {model}...")
             resp = call_model(model, prompt)
             script = extract_text(resp)
-            if script and len(script) > 20:
-                logging.info(f"Modelo {model} exitoso.")
+            if script and len(script.split()) >= SHORT_MIN_WORDS:
+                logging.info(f"Modelo {model} exitoso con {len(script.split())} palabras.")
                 return script
         except Exception as e:
             logging.warning(f"Modelo {model} falló: {e}")
             continue
 
-    logging.error("Todos los modelos fallaron. Usando guion de emergencia.")
+    logging.error("Modelos insuficientes o muy cortos. Usando guion de emergencia extenso.")
     return random.choice(emergency_list)
 
 
@@ -302,4 +260,5 @@ if __name__ == "__main__":
             print(f"\n--- {s['title']} ---")
             print(s["text"])
     else:
-        print(generate_short_script(topic))
+        sc = generate_short_script(topic)
+        print(f"Total palabras: {len(sc.split())}\n{sc}")

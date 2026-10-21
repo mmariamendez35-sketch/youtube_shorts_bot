@@ -16,8 +16,11 @@ SHORTS_CRON = "0 13,17,22,2 * * *"   # 8am, 12pm, 5pm, 9pm COL
 LONG_VIDEO_CRON = "0 15 * * *"        # 10am COL – 1 long video/day
 
 # --- Video formats ----------------------------------------------------------
-SHORT_MAX_WORDS = 60
-SHORT_MAX_DURATION = 58       # seconds (YouTube Shorts limit = 60s)
+# Para asegurar una duracion MINIMA de 40s y MAXIMA de 58s en Shorts (YouTube limite = 60s):
+SHORT_MIN_WORDS = 95
+SHORT_MAX_WORDS = 125
+SHORT_MIN_DURATION = 40.0     # Minimo 40 segundos
+SHORT_MAX_DURATION = 58.0     # Maximo 58 segundos (margen para límite de 60s de Shorts)
 
 LONG_MIN_SEGMENTS = 6         # min chapters in a long video
 LONG_MAX_SEGMENTS = 12        # max chapters
