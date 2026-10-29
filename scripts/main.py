@@ -100,10 +100,7 @@ def _get_channel_id() -> str:
     if not YOUTUBE_TOKEN_PATH.is_file():
         raise FileNotFoundError("YouTube token JSON not found.")
 
-    creds = Credentials.from_authorized_user_file(
-        str(YOUTUBE_TOKEN_PATH),
-        scopes=["https://www.googleapis.com/auth/youtube.readonly"],
-    )
+    creds = Credentials.from_authorized_user_file(str(YOUTUBE_TOKEN_PATH))
     if creds.expired and creds.refresh_token:
         from google.auth.transport.requests import Request
         creds.refresh(Request())

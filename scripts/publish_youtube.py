@@ -37,7 +37,7 @@ def _load_credentials() -> Credentials:
     if not YOUTUBE_TOKEN_PATH.is_file():
         raise FileNotFoundError(f"YouTube token file not found at {YOUTUBE_TOKEN_PATH}. Ensure YOUTUBE_TOKEN_JSON secret is set.")
     
-    creds = Credentials.from_authorized_user_file(str(YOUTUBE_TOKEN_PATH), scopes=SCOPES)
+    creds = Credentials.from_authorized_user_file(str(YOUTUBE_TOKEN_PATH))
     if creds.expired and creds.refresh_token:
         from google.auth.transport.requests import Request
         creds.refresh(Request())

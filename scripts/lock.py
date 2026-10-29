@@ -19,10 +19,7 @@ logging.basicConfig(level=logging.INFO)
 def _load_credentials() -> Credentials:
     if not YOUTUBE_TOKEN_PATH.is_file():
         raise FileNotFoundError(f"YouTube token file not found at {YOUTUBE_TOKEN_PATH}.")
-    creds = Credentials.from_authorized_user_file(
-        str(YOUTUBE_TOKEN_PATH),
-        scopes=["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.readonly"]
-    )
+    creds = Credentials.from_authorized_user_file(str(YOUTUBE_TOKEN_PATH))
     if creds.expired and creds.refresh_token:
         from google.auth.transport.requests import Request
         creds.refresh(Request())
