@@ -113,6 +113,27 @@ def _get_channel_id() -> str:
     return items[0]["id"]
 
 
+def build_viral_short_title(topic: str, style_idx: int) -> str:
+    """Generate high-CTR, high-curiosity viral titles for YouTube Shorts."""
+    hooks = [
+        "🚨 NO LO SALTES: ",
+        "🛡️ Haz esta oración HOY: ",
+        "🙏 Si este video llegó a ti: ",
+        "✨ Antes de dormir: ",
+        "🕊️ Dios te dice hoy: ",
+        "⚡ Oración urgente: ",
+        "✝️ Escucha 40 segundos: ",
+        "🔥 Declara esta bendición: ",
+        "🌟 Dios cambiará tu semana: ",
+        "📖 Oración milagrosa: ",
+    ]
+    hook = hooks[style_idx % len(hooks)]
+    title = f"{hook}{topic} #Shorts"
+    if len(title) > 98:
+        title = f"{hook}{topic[:80]}... #Shorts"
+    return title
+
+
 def run_short(custom_topic: str = ""):
     """Generate and publish a YouTube Short."""
     logging.info(f"=== MODO: SHORT — {CHANNEL_NAME} ===")
@@ -145,10 +166,10 @@ def run_short(custom_topic: str = ""):
     video_name = "short_" + "_".join(topic.lower().split()[:5])
     video_path = assemble_short(audio_path, srt_path, video_dir, video_name, style_idx)
 
-    # Title + description (varied CTA)
+    # High-CTR Viral Title + description (varied CTA)
     cta = get_next_cta(CTA_PHRASES)
-    title = f"🙏 {topic[:90]} #Shorts"
-    description = DESCRIPTION_TEMPLATE_SHORT.format(title=topic, cta=cta)
+    title = build_viral_short_title(topic, style_idx)
+    description = DESCRIPTION_TEMPLATE_SHORT.format(title=title, cta=cta)
 
     thumbnail = Path("assets/thumbnail.jpg") if Path("assets/thumbnail.jpg").exists() else None
 

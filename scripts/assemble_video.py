@@ -56,20 +56,22 @@ def _pick_image_for_slide(index: int) -> Path:
 
 
 def _build_image_kb_filter(image_path: Path, duration: float, index: int) -> str:
-    """Build an FFmpeg video filter for a religious image with Ken Burns pan/zoom and dark spiritual vignette."""
-    img_escaped = str(image_path.resolve()).replace("\\", "/").replace(":", "\\\\:")
-    
-    # Randomize zoom direction per slide
+    """Build an FFmpeg video filter for a religious image with dynamic Ken Burns motion and dark spiritual vignette."""
     total_frames = max(1, int(duration * FPS))
-    if index % 2 == 0:
-        # Zoom in
-        zoom_expr = f"'min(zoom+0.0006,1.25)'"
-        x_expr = f"'iw/2-(iw/zoom/2)'"
-        y_expr = f"'ih/2-(ih/zoom/2)'"
+    if index % 3 == 0:
+        # Smooth Zoom in
+        zoom_expr = "'min(zoom+0.0008,1.25)'"
+        x_expr = "'iw/2-(iw/zoom/2)'"
+        y_expr = "'ih/2-(ih/zoom/2)'"
+    elif index % 3 == 1:
+        # Smooth Zoom out
+        zoom_expr = "'max(1.22-0.0008*on,1.0)'"
+        x_expr = "'iw/2-(iw/zoom/2)'"
+        y_expr = "'ih/2-(ih/zoom/2)'"
     else:
         # Slow pan down/up with slight zoom
-        zoom_expr = f"'1.15'"
-        x_expr = f"'iw/2-(iw/zoom/2)'"
+        zoom_expr = "'1.15'"
+        x_expr = "'iw/2-(iw/zoom/2)'"
         y_expr = f"'(ih-ih/zoom)*(on/{total_frames})'"
 
     # Scale to fill 1080x1920 (aspect ratio crop), apply zoompan, darken for subtitle readability
@@ -100,41 +102,104 @@ def assemble_short(
     audio_path: Path, srt_path: Path, output_dir: Path,
     video_name: str, style_index: int = 0,
 ) -> Path:
-    """Create a SHORT video (< 60s) with a sacred religious image and kinetic subtitles."""
+    """Create a high-retention SHORT video (< 60s) with multiple rotating sacred images,
+    cinematic Ken Burns motion on each cut, background ambient celestial music, and kinetic subtitles.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
     video_path = output_dir / f"{video_name}.mp4"
     duration = _get_duration(audio_path)
+    images = _get_prayer_images()
 
     sub_style = SUBTITLE_STYLES[style_index % len(SUBTITLE_STYLES)]
-    srt_abs = str(srt_path.resolve()).replace("\\", "/").replace(":", "\\\\:")
-
-    # Select religious image
-    img = _pick_image_for_slide(style_index)
+    try:
+        srt_posix = srt_path.relative_to(Path.cwd()).as_posix()
+    except Exception:
+        srt_posix = srt_path.as_posix()
     has_music = Path(MUSIC_FILE).exists()
 
-    if img and img.exists():
-        logging.info(f"Using religious image for Short: {img.name}")
-        img_vf = _build_image_kb_filter(img, duration + 1, style_index)
-        vf = f"{img_vf},subtitles='{srt_abs}':force_style='{sub_style}'"
+    if images:
+        # Dynamic multi-image cuts every 5.5 to 6.5 seconds for maximum viewer retention
+        num_slides = max(3, min(8, int(duration // 5.5)))
+        slide_dur = (duration + 0.5) / num_slides
+        temp_dir = output_dir / f"temp_{video_name}"
+        temp_dir.mkdir(parents=True, exist_ok=True)
 
+        slide_clips = []
+        for i in range(num_slides):
+            img = images[(style_index + i) % len(images)]
+            slide_path = temp_dir / f"slide_{i:02d}.mp4"
+            slide_vf = _build_image_kb_filter(img, slide_dur, style_index + i)
+
+            cmd_slide = [
+                "ffmpeg", "-y", "-loop", "1", "-i", str(img),
+                "-vf", slide_vf,
+                "-c:v", "libx264", "-preset", "ultrafast",
+                "-t", str(slide_dur),
+                "-r", str(FPS), "-pix_fmt", "yuv420p",
+                str(slide_path)
+            ]
+            subprocess.run(cmd_slide, check=True, capture_output=True)
+            slide_clips.append(slide_path)
+
+        # Write concat demuxer list
+        concat_txt = temp_dir / "concat.txt"
+        with concat_txt.open("w", encoding="utf-8") as f:
+            for sc in slide_clips:
+                p_esc = str(sc.resolve()).replace("\\", "/")
+                f.write(f"file '{p_esc}'\n")
+
+        # Final muxing with subtitles + voice + background ambient music
         cmd = [
             "ffmpeg", "-y",
-            "-loop", "1", "-i", str(img),
+            "-f", "concat", "-safe", "0", "-i", str(concat_txt),
             "-i", str(audio_path),
         ]
+        vf = f"subtitles='{srt_posix}':force_style='{sub_style}'"
+
         if has_music:
             cmd += ["-i", str(MUSIC_FILE)]
-            af = f"[1:a]volume=1.0[voice];[2:a]volume=0.12,atrim=0:{duration + 1}[music];[voice][music]amix=inputs=2:duration=shortest[aout]"
+            # Ambient celestial music mixed at volume 0.15, looped seamlessly
+            af = f"[1:a]volume=1.0[voice];[2:a]volume=0.15,aloop=loop=-1:size=2e+09,atrim=0:{duration + 0.5}[music];[voice][music]amix=inputs=2:duration=first:dropout_transition=2[aout]"
             cmd += ["-filter_complex", f"[0:v]{vf}[vout];{af}"]
             cmd += ["-map", "[vout]", "-map", "[aout]"]
         else:
             cmd += ["-vf", vf, "-map", "0:v", "-map", "1:a"]
 
+        cmd += [
+            "-c:v", "libx264", "-preset", "medium", "-b:v", "2.8M",
+            "-c:a", "aac", "-b:a", "128k",
+            "-r", str(FPS), "-t", str(duration + 0.5),
+            "-movflags", "+faststart",
+            str(video_path),
+        ]
+
+        logging.info(f"Assembling multi-scene SHORT with {num_slides} sacred transitions (style {style_index})...")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Cleanup temporary slide files
+        try:
+            for sc in slide_clips:
+                if sc.exists():
+                    sc.unlink()
+            if concat_txt.exists():
+                concat_txt.unlink()
+            if temp_dir.exists():
+                temp_dir.rmdir()
+        except Exception:
+            pass
+
+        if result.returncode != 0:
+            logging.error(f"ffmpeg stderr: {result.stderr[-800:]}")
+            raise RuntimeError(f"ffmpeg failed with code {result.returncode}")
+
+        logging.info(f"Multi-scene Short video assembled successfully: {video_path}")
+        return video_path
+
     else:
         logging.warning("No religious images found. Falling back to gradient.")
         palette = GRADIENT_PALETTES[style_index % len(GRADIENT_PALETTES)]
         bg_filter = _build_gradient_filter(palette[0], palette[1], duration + 1, style_index)
-        vf = f"subtitles='{srt_abs}':force_style='{sub_style}'"
+        vf = f"subtitles='{srt_posix}':force_style='{sub_style}'"
 
         cmd = [
             "ffmpeg", "-y",
@@ -143,28 +208,28 @@ def assemble_short(
         ]
         if has_music:
             cmd += ["-i", str(MUSIC_FILE)]
-            af = f"[1:a]volume=1.0[voice];[2:a]volume=0.12,atrim=0:{duration + 1}[music];[voice][music]amix=inputs=2:duration=shortest[aout]"
+            af = f"[1:a]volume=1.0[voice];[2:a]volume=0.15,atrim=0:{duration + 1}[music];[voice][music]amix=inputs=2:duration=shortest[aout]"
             cmd += ["-filter_complex", f"[0:v]{vf}[vout];{af}"]
             cmd += ["-map", "[vout]", "-map", "[aout]"]
         else:
             cmd += ["-vf", vf, "-map", "0:v", "-map", "1:a"]
 
-    cmd += [
-        "-c:v", "libx264", "-preset", "medium", "-b:v", "2.5M",
-        "-c:a", "aac", "-b:a", "128k",
-        "-r", str(FPS), "-t", str(duration + 0.5),
-        "-movflags", "+faststart", "-shortest",
-        str(video_path),
-    ]
+        cmd += [
+            "-c:v", "libx264", "-preset", "medium", "-b:v", "2.5M",
+            "-c:a", "aac", "-b:a", "128k",
+            "-r", str(FPS), "-t", str(duration + 0.5),
+            "-movflags", "+faststart", "-shortest",
+            str(video_path),
+        ]
 
-    logging.info(f"Assembling SHORT video with religious art (style {style_index})...")
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        logging.error(f"ffmpeg stderr: {result.stderr[-800:]}")
-        raise RuntimeError(f"ffmpeg failed with code {result.returncode}")
+        logging.info(f"Assembling SHORT video with gradient (style {style_index})...")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            logging.error(f"ffmpeg stderr: {result.stderr[-800:]}")
+            raise RuntimeError(f"ffmpeg failed with code {result.returncode}")
 
-    logging.info(f"Short video assembled successfully: {video_path}")
-    return video_path
+        logging.info(f"Short video assembled successfully: {video_path}")
+        return video_path
 
 
 def assemble_long(
@@ -189,7 +254,10 @@ def assemble_long(
         duration = _get_duration(audio_path)
 
         sub_style = SUBTITLE_STYLES[(style_index + i) % len(SUBTITLE_STYLES)]
-        srt_abs = str(srt_path.resolve()).replace("\\", "/").replace(":", "\\\\:")
+        try:
+            srt_posix = srt_path.relative_to(Path.cwd()).as_posix()
+        except Exception:
+            srt_posix = srt_path.as_posix()
 
         title_escaped = title.replace("'", "\\'").replace(":", "\\:")
         title_filter = (
@@ -204,7 +272,7 @@ def assemble_long(
         if img and img.exists():
             logging.info(f"Segment {i+1} using image: {img.name}")
             img_vf = _build_image_kb_filter(img, duration + 1, style_index + i)
-            vf = f"{img_vf},{title_filter},subtitles='{srt_abs}':force_style='{sub_style}'"
+            vf = f"{img_vf},{title_filter},subtitles='{srt_posix}':force_style='{sub_style}'"
 
             cmd = [
                 "ffmpeg", "-y",
@@ -221,7 +289,7 @@ def assemble_long(
         else:
             palette = GRADIENT_PALETTES[(style_index + i) % len(GRADIENT_PALETTES)]
             bg_filter = _build_gradient_filter(palette[0], palette[1], duration + 2, style_index + i)
-            vf = f"{title_filter},subtitles='{srt_abs}':force_style='{sub_style}'"
+            vf = f"{title_filter},subtitles='{srt_posix}':force_style='{sub_style}'"
 
             cmd = [
                 "ffmpeg", "-y",

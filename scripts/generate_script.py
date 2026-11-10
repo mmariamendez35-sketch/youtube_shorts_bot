@@ -23,9 +23,10 @@ logging.basicConfig(level=logging.INFO)
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
-# ── Emergency SHORT scripts (Extensas para durar entre 42 y 54 segundos a ritmo normal) ──
+# ── Emergency SHORT scripts (Con HOOK inicial para alta retención y 42-52s de duración) ──
 EMERGENCY_SHORTS = [
     (
+        "¡No pases este video! Si Dios lo puso frente a tus ojos en este momento exacto, tómate cuarenta segundos porque tiene una bendición para ti. "
         "Padre celestial y misericordioso, en este día vengo a tus pies a entregar todas mis cargas, dudas y preocupaciones. "
         "Sé que las batallas que enfrento a veces parecen imposibles a los ojos humanos, pero en tu santa palabra encuentro mi refugio, "
         "mi roca inconmovible y mi mayor fortaleza. Te pido que extiendas tu mano sanadora sobre mi vida y sobre mi hogar. "
@@ -34,15 +35,17 @@ EMERGENCY_SHORTS = [
         "En el nombre poderoso de Jesús declaro victoria. Escribe AMÉN en los comentarios con toda tu fe y suscríbete para bendecir tu día."
     ),
     (
-        "Señor Jesús, hoy me detengo en silencio para darte gracias por el milagro de respirar y por tu fidelidad inquebrantable. "
-        "Tú conoces los suspiros más íntimos de mi alma y las lágrimas que he derramado en soledad. "
+        "¡Detén tu pantalla un segundo! Dios conoce la batalla en silencio que estás librando y hoy te dice: no temas porque yo estoy contigo. "
+        "Señor Jesús, hoy me detengo para darte gracias por el milagro de la vida y por tu fidelidad inquebrantable. "
+        "Tú conoces los suspiros más íntimos de mi alma y las lágrimas que he derramado cuando nadie me veía. "
         "Por eso hoy decido no temer al mañana, porque sé que tú ya estás allá preparando el terreno para mi bendición. "
         "Rompe toda atadura de miedo, sana toda herida del pasado y levanta mi espíritu con nuevo entusiasmo y propósito. "
         "Derrama tu favor sobre mi trabajo, cuida las entradas y salidas de mis seres amados y que en mi mesa nunca falte el pan de tu provisión. "
-        "Declaro que esta semana será de milagros y respuestas celestiales. Deja tu AMÉN con fervor y comparte este mensaje de esperanza."
+        "Declaro que esta semana será de milagros y respuestas celestiales. Deja tu AMÉN con fervor en los comentarios y comparte esta bendición."
     ),
     (
-        "Espíritu Santo de Dios, fuego consolador y guía divina, desciende con poder en este preciso momento sobre mi vida. "
+        "¡Espera un momento! Antes de seguir deslizando, permite que la presencia de Dios inunde tu corazón y te llene de paz. "
+        "Espíritu Santo de Dios, fuego consolador y guía divina, desciende con poder en este preciso momento sobre mi vida y mi familia. "
         "Limpia mi mente de pensamientos de angustia, lléname de serenidad y dame la sabiduría necesaria para tomar las mejores decisiones. "
         "Envía a tus santos ángeles guardianes a acampar alrededor de mi casa, para que ningún peligro, envidia o enfermedad toque a los míos. "
         "Confío plenamente en que tu tiempo es perfecto y que lo que hoy parece una prueba difícil, mañana será mi testimonio más grande de fe. "
@@ -50,12 +53,22 @@ EMERGENCY_SHORTS = [
         "Comenta AMÉN si crees firmemente en el poder de Dios y suscríbete para recibir tu oración diaria."
     ),
     (
-        "San Miguel Arcángel, príncipe de la milicia celestial, defiéndenos en la batalla y sé nuestro amparo contra la maldad y las asechanzas del enemigo. "
+        "¡No saltes esta oración! San Miguel Arcángel levanta hoy su escudo para proteger tu hogar y a los que amas de todo mal. "
+        "Príncipe de la milicia celestial, defiéndenos en la batalla y sé nuestro amparo contra la maldad y las asechanzas del enemigo. "
         "Con tu espada de luz divina corta todo lazo de desánimo, toda opresión espiritual y todo plan oscuro en contra de mi familia y mi destino. "
-        "Padre eterno, sella con la preciosa sangre de Cristo mi hogar, mis proyectos y a cada uno de mis hijos. "
-        "Que tu luz resplandezca en medio de las tinieblas y que la paz de Dios que sobrepasa todo entendimiento guarde nuestros corazones hoy y siempre. "
+        "Padre eterno, sella con la preciosa sangre de Cristo mi hogar, mis proyectos y a cada uno de mis seres amados. "
+        "Que tu luz resplandezca en medio de las tinieblas y que la paz de Dios guarde nuestros corazones hoy y siempre. "
         "Me declaro bendecido, protegido y guiado por la mano del Altísimo en todo momento. "
-        "Escribe FUERZA y AMÉN en los comentarios para sellar esta poderosa protección en tu vida."
+        "Escribe FUERZA y AMÉN en los comentarios para sellar esta poderosa protección divina en tu vida."
+    ),
+    (
+        "¡Dios tiene un mensaje urgente para ti hoy! Esa puerta que creías cerrada para siempre, el Señor la abrirá a tu favor. "
+        "Padre amado, hoy reconozco que mis fuerzas son limitadas, pero tu poder es infinito. "
+        "Pongo en tus benditas manos mis finanzas, mi trabajo y cada uno de los anhelos más profundos de mi corazón. "
+        "Cancela toda deuda, derrama provisión sobrenatural sobre mi mesa y bendice el fruto de mis manos. "
+        "Que tu gracia me acompañe a donde quiera que vaya y que la prosperidad de tu reino reine en mi hogar. "
+        "Declaro que los días de escasez terminan hoy y comienza una temporada de abundancia, salud y bendición multiplicada. "
+        "Comenta 'RECIBO MI MILAGRO' y deja tu AMÉN con fe para sellar esta bendición."
     ),
 ]
 
@@ -161,18 +174,20 @@ def extract_text(response_json):
 
 
 def generate_short_script(topic: str) -> str:
-    """Generate a SHORT prayer script designed to last between 42 and 52 seconds (100-120 words)."""
+    """Generate a high-retention SHORT prayer script designed to last between 42 and 52 seconds (100-120 words)."""
     prompt = (
         "Eres un creador VIRAL de YouTube Shorts en español del canal 'Oraciones que transforman'.\n"
-        f"Genera una oración PODEROSA Y COMPLETA de exactamente entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras sobre:\n"
+        f"Genera una oración PODEROSA, EMOTIVA Y DE GRAN IMPACTO de exactamente entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras sobre:\n"
         f"'{topic}'\n\n"
-        "REQUISITOS CRÍTICOS:\n"
-        f"1. LONGITUD: Debe contener entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras (NUNCA menos de {SHORT_MIN_WORDS} palabras porque el audio debe durar mínimo 40 segundos).\n"
-        "2. ESTRUCTURA:\n"
-        "   - Apertura / Hook emocional que atrape en los primeros 3 segundos.\n"
-        "   - Cuerpo de la oración con súplicas profundas, fe inquebrantable y bendiciones para el hogar y la salud.\n"
-        "   - Cierre con declaración de fe y llamada a la acción: 'Escribe AMÉN en los comentarios si recibes esta bendición y suscríbete'.\n"
-        "3. FORMATO: Devuelve ÚNICAMENTE el texto narrado de la oración. Sin títulos, sin asteriscos, sin comillas, sin emojis ni notas explicativas.\n"
+        "REQUISITOS CRÍTICOS PARA MÁXIMA RETENCIÓN Y VIRALIDAD:\n"
+        "1. HOOK OBLIGATORIO EN LA PRIMERA FRASE (primeros 2 segundos): Debe empezar directamente atrapando la atención del espectador, por ejemplo:\n"
+        "   - '¡No pases este video! Si Dios lo puso en tu camino hoy, es porque tiene una respuesta para tu dolor...'\n"
+        "   - '¡Detén tu pantalla un segundo! Dios conoce la batalla en silencio que estás librando hoy...'\n"
+        "   - '¡Espera un momento! Esta oración de bendición y protección es para ti y para tu familia hoy...'\n"
+        f"2. LONGITUD: Debe contener entre {SHORT_MIN_WORDS} y {SHORT_MAX_WORDS} palabras (NUNCA menos de {SHORT_MIN_WORDS} palabras para asegurar mínimo 40 segundos de video).\n"
+        "3. CUERPO: Oración profunda, conmovedora, con fe inquebrantable, declarando milagros, salud, protección contra todo mal y provisión.\n"
+        "4. CIERRE CON ENGAGEMENT: Cierra con una declaración de victoria y llamado a comentar: 'Escribe AMÉN en los comentarios con fe para recibir esta bendición, compártela y suscríbete'.\n"
+        "5. FORMATO: Devuelve ÚNICAMENTE el texto narrado continuo. Sin títulos, sin asteriscos, sin comillas, sin emojis ni notas de dirección.\n"
     )
     script = _generate_with_cascade(prompt, EMERGENCY_SHORTS)
     words = script.split()

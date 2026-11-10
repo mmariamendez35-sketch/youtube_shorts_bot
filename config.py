@@ -31,11 +31,13 @@ LONG_VIDEO_TARGET_MINUTES = 10  # target duration in minutes
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODELS = [
     "openrouter/free",
-    "liquid/lfm-2.5-2.6b:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "google/gemini-2.0-flash-exp:free",
     "google/gemma-4-31b-it:free",
+    "liquid/lfm-2.5-2.6b:free",
     "nvidia/nemotron-3.5-lightning:free",
 ]
-MODEL_TIMEOUT = 20
+MODEL_TIMEOUT = 25
 
 # --- TTS settings ----------------------------------------------------------
 TTS_LANGUAGE = "es"
@@ -71,12 +73,13 @@ GRADIENT_PALETTES = [
     ("28100a", "5a2814"),   # dark bronze
 ]
 
+# --- Subtitle styles (High impact, big mobile-friendly fonts, safe-zone positioning) ---
 SUBTITLE_STYLES = [
-    "Fontsize=24,PrimaryColour=&HFFFFFFFF,OutlineColour=&H80000000,Outline=2,Shadow=1,Alignment=2,MarginV=100",
-    "Fontsize=22,PrimaryColour=&H00FFFF00,OutlineColour=&H80000000,Outline=2,Shadow=2,Alignment=2,MarginV=90",
-    "Fontsize=26,PrimaryColour=&HFFD700FF,OutlineColour=&H80000000,Outline=3,Shadow=1,Alignment=2,MarginV=110",
-    "Fontsize=23,PrimaryColour=&HFFE0E0FF,OutlineColour=&H80222222,Outline=2,Shadow=1,Alignment=2,MarginV=95",
-    "Fontsize=25,PrimaryColour=&HFF90EE90,OutlineColour=&H80000000,Outline=2,Shadow=2,Alignment=2,MarginV=105",
+    "Fontname=Arial,Bold=1,Fontsize=56,PrimaryColour=&H00FFFFFF&,OutlineColour=&H00000000&,Outline=4,Shadow=2,Alignment=2,MarginV=260",
+    "Fontname=Arial,Bold=1,Fontsize=58,PrimaryColour=&H0000FFFF&,OutlineColour=&H00000000&,Outline=4,Shadow=3,Alignment=2,MarginV=260",
+    "Fontname=Arial,Bold=1,Fontsize=56,PrimaryColour=&H002EFFFF&,OutlineColour=&H00000000&,Outline=4,Shadow=2,Alignment=2,MarginV=260",
+    "Fontname=Arial,Bold=1,Fontsize=54,PrimaryColour=&H00D0FFFF&,OutlineColour=&H00000000&,Outline=4,Shadow=2,Alignment=2,MarginV=260",
+    "Fontname=Arial,Bold=1,Fontsize=56,PrimaryColour=&H0098FB98&,OutlineColour=&H00000000&,Outline=4,Shadow=3,Alignment=2,MarginV=260",
 ]
 
 # --- YouTube API settings --------------------------------------------------
@@ -85,35 +88,36 @@ CLIENT_SECRET_PATH = Path("client_secret.json")
 
 DEFAULT_TAGS_SHORT = [
     "Oración", "Oraciones", "Oración poderosa", "Oración de la mañana",
-    "Fe", "Dios", "Jesús", "Espíritu Santo", "Bendición", "Milagro",
-    "Oración del día", "Shorts", "Inspiración espiritual", "Cristiano",
+    "Oración de la noche", "Fe", "Dios", "Jesús", "Espíritu Santo", "Bendición",
+    "Milagro", "Oración del día", "Shorts", "Inspiración espiritual", "Católico",
+    "Cristianos", "Paz interior", "Amén", "Oración de protección", "Dios te dice hoy",
 ]
 DEFAULT_TAGS_LONG = [
     "Oración", "Oraciones poderosas", "Oración larga", "Meditación",
     "Fe", "Dios", "Jesús", "Espíritu Santo", "Bendición", "Milagro",
     "Transformación", "Oración profunda", "Reflexión espiritual",
-    "Cristiano", "Biblia", "Vida espiritual",
+    "Cristiano", "Biblia", "Vida espiritual", "Paz mental", "Oración para dormir",
 ]
 
 CTA_PHRASES = [
-    "🔔 Suscríbete y comenta AMÉN si esta oración tocó tu corazón.",
-    "🙏 Comenta AMÉN y comparte con alguien que necesite esta oración.",
-    "❤️ Dale LIKE si sentiste la presencia de Dios. Suscríbete para más.",
-    "✝️ Escribe FE en los comentarios si crees en su poder.",
-    "🕊️ Comparte esta oración con alguien que la necesite hoy.",
-    "💪 Comenta FUERZA si Dios te dio fuerzas con esta oración.",
-    "🌟 Suscríbete y activa la 🔔 para recibir oraciones diarias.",
-    "📖 Comenta tu petición de oración y oramos juntos.",
+    "🙏 Si recibes esta bendición hoy, escribe con fe AMÉN en los comentarios y compártela.",
+    "✨ Escribe 'DIOS ESTÁ CONMIGO' en los comentarios y declara tu milagro hoy.",
+    "🛡️ Comenta AMÉN para sellar la protección de Dios sobre tu hogar y tu familia.",
+    "❤️ No te vayas sin dejar tu AMÉN. Dios escucha la oración sincera de tu corazón.",
+    "🌟 Escribe FE si crees que Dios abrirá una puerta grande en tu vida esta semana.",
+    "🕊️ Comenta 'RECIBO MI PAZ' y deja tus preocupaciones en las manos del Señor.",
+    "✝️ Comenta AMÉN y suscríbete para recibir cada día la palabra que transformará tu vida.",
 ]
 
 DESCRIPTION_TEMPLATE_SHORT = """{title}
 
 {cta}
 
-🙏 Oraciones que transforman — Cada día una oración poderosa
-que toca el corazón y renueva tu fe.
+🙏 Bienvenidos a Oraciones que transforman. Cada día una oración poderosa para renovar tu fe, encontrar paz y recibir las bendiciones de Dios.
 
-#Oración #OraciónPoderosa #Fe #Dios #Jesús #Milagro #Shorts #Bendición"""
+👇 Deja tu petición de oración en los comentarios para orar juntos por tu necesidad.
+
+#Oración #OraciónPoderosa #Fe #Dios #Jesús #Milagro #Shorts #Bendición #Amén #Católicos #Cristianos"""
 
 DESCRIPTION_TEMPLATE_LONG = """{title}
 
