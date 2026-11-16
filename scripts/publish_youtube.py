@@ -52,13 +52,9 @@ def upload_video(
     thumbnail_path: Path = None,
     channel_id: str = None,
 ) -> str:
-    """Upload video to YouTube with native multilingual localizations."""
+    """Upload video to YouTube targeted for high-retention Spanish-speaking audiences."""
     creds = _load_credentials()
     youtube = build("youtube", "v3", credentials=creds)
-
-    # Generate multilingual localizations for worldwide reach
-    localizations = generate_localizations(title, description)
-    logging.info(f"Generated {len(localizations)} multilingual localizations (EN, PT, FR, DE, IT, HI, AR, RU, JA, KO, ID, TL).")
 
     body = {
         "snippet": {
@@ -73,11 +69,10 @@ def upload_video(
             "privacyStatus": "public",
             "selfDeclaredMadeForKids": False,
         },
-        "localizations": localizations,
     }
 
     media = MediaFileUpload(str(video_path), chunksize=-1, resumable=True, mimetype="video/mp4")
-    request = youtube.videos().insert(part="snippet,status,localizations", body=body, media_body=media)
+    request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
     
     response = None
     while response is None:

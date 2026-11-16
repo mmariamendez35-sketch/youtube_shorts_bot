@@ -114,23 +114,26 @@ def _get_channel_id() -> str:
 
 
 def build_viral_short_title(topic: str, style_idx: int) -> str:
-    """Generate high-CTR, high-curiosity viral titles for YouTube Shorts."""
-    hooks = [
-        "🚨 NO LO SALTES: ",
-        "🛡️ Haz esta oración HOY: ",
-        "🙏 Si este video llegó a ti: ",
-        "✨ Antes de dormir: ",
-        "🕊️ Dios te dice hoy: ",
-        "⚡ Oración urgente: ",
-        "✝️ Escucha 40 segundos: ",
-        "🔥 Declara esta bendición: ",
-        "🌟 Dios cambiará tu semana: ",
-        "📖 Oración milagrosa: ",
+    """Generate high-SEO, reverence-driven titles that match what millions search on YouTube."""
+    promises = [
+        "— Llena tu corazón de paz",
+        "— Dios abre puertas hoy",
+        "— Recibe tu milagro con fe",
+        "— Protección para tu hogar y familia",
+        "— No temas, Dios está contigo",
+        "— Renueva tus fuerzas hoy",
+        "— Declara bendición en tu vida",
+        "— Entrega tus cargas al Señor",
     ]
-    hook = hooks[style_idx % len(hooks)]
-    title = f"{hook}{topic} #Shorts"
+    sub = promises[style_idx % len(promises)]
+    clean_topic = topic.strip()
+    if not clean_topic.startswith("🙏"):
+        title = f"🙏 {clean_topic} {sub} #Shorts"
+    else:
+        title = f"{clean_topic} {sub} #Shorts"
+
     if len(title) > 98:
-        title = f"{hook}{topic[:80]}... #Shorts"
+        title = f"🙏 {clean_topic[:75]} #Shorts"
     return title
 
 
