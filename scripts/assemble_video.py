@@ -320,7 +320,7 @@ def assemble_long(
     concat_file = temp_dir / "concat.txt"
     with open(concat_file, "w", encoding="utf-8") as f:
         for sv in segment_videos:
-            f.write(f"file '{sv.resolve()}'\n")
+            f.write(f"file '{sv.resolve().as_posix()}'\n")
 
     has_music = Path(MUSIC_FILE).exists()
     if has_music:

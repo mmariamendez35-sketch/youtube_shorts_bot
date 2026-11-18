@@ -240,7 +240,15 @@ def run_long(custom_topic: str = ""):
     chapters_text = "\n".join(chapter_timestamps)
     description = DESCRIPTION_TEMPLATE_LONG.format(title=topic, cta=cta, chapters=chapters_text)
 
-    thumbnail = Path("assets/thumbnail.jpg") if Path("assets/thumbnail.jpg").exists() else None
+    # Generate HD thumbnail automatically for this long video
+    from scripts.generate_thumbnail import generate_long_thumbnail
+    thumb_path = Path("output/thumbnail_long.jpg")
+    try:
+        generate_long_thumbnail(topic, style_idx, thumb_path)
+        thumbnail = thumb_path if thumb_path.exists() else None
+    except Exception as e:
+        logging.warning(f"Thumbnail generation failed: {e}")
+        thumbnail = None
 
     video_id = upload_video(
         video_path=video_path, title=title, description=description,

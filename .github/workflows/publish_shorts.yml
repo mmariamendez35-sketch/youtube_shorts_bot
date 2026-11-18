@@ -2,10 +2,12 @@ name: Publish YouTube Content — Oraciones que transforman
 
 on:
   schedule:
-    # ── 3 HORAS DE ORO PARA YOUTUBE SHORTS (Auditoría de alta retención espiritual) ──
+    # ── SHORTS DIARIOS (Horarios pico de consumo espiritual) ──
     - cron: '0 11 * * *'    # 6:00 AM COL  — Oración de la Mañana (Al despertar)
     - cron: '0 17 * * *'    # 12:00 PM COL — Oración del Mediodía (Pausa laboral)
-    - cron: '0 1 * * *'     # 8:00 PM COL  — Oración de la Noche (Antes de dormir)
+    - cron: '0 2 * * *'     # 9:00 PM COL  — Oración de la Noche (Antes de dormir)
+    # ── VIDEO LARGO DIARIO (8:00 PM COL — Horario pico para acumular horas de reproducción) ──
+    - cron: '0 1 * * *'     # 8:00 PM COL  — Oración Profunda de 10-15 min con Miniatura HD automática
   workflow_dispatch:
     inputs:
       format:
@@ -56,9 +58,12 @@ jobs:
       - name: Determine video format
         id: format
         run: |
+          CRON="${{ github.event.schedule }}"
           INPUT_FMT="${{ github.event.inputs.format }}"
           if [ -n "$INPUT_FMT" ]; then
             echo "fmt=$INPUT_FMT" >> $GITHUB_OUTPUT
+          elif [ "$CRON" = "0 1 * * *" ]; then
+            echo "fmt=long" >> $GITHUB_OUTPUT
           else
             echo "fmt=short" >> $GITHUB_OUTPUT
           fi
